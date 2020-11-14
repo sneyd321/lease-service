@@ -22,6 +22,7 @@ class House(db.Model):
     amenities = db.relationship("Amenity", secondary=amenities, backref=db.backref("House", lazy="dynamic"))
 
     def __init__(self, houseData):
+        self.homeownerId = houseData["homeownerId"]
         self.rentalUnitLocation = RentalUnitLocation(houseData["rentalUnitLocation"])    
         self.rentDetails = RentDetails(houseData["rentDetails"])
         self.utilities = [Utility(utilityData) for utilityData in houseData["utilities"]]
@@ -30,6 +31,7 @@ class House(db.Model):
     def toJson(self):
         return {
             "houseId": self.id,
+            "homeownerId": self.homeownerId,
             "rentalUnitLocation": self.rentalUnitLocation.toJson(),
             "rentDetails": self.rentDetails.toJson(),
             "utilities": [utility.toJson() for utility in self.utilities],
@@ -154,6 +156,7 @@ class RentDetails(db.Model):
 
     def toJson(self):
         return {
+            "rentDueDate": self.rentDueDate,
             "baseRent": self.baseRent,
             "parkingAmount": self.parkingAmount,
             "paymentOptions": [paymentOption.toJson() for paymentOption in self.paymentOptions]

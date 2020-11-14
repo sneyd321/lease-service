@@ -4,22 +4,31 @@ import json, requests
 
 from server.api.models import House
 
-
-@house.route("Homeowner/<int:id>/House", methods=["POST"])
-def create_house(id):
+@house.route("House", methods=["POST"])
+def create_house():
     data = request.get_json()
+    print(data)
+    
     try:
-        resource = House(data)
-        resource.homeownerId = id
-        if resource.insert():
+        house = House(data)
+        if house.insert():
             return Response(status=201)
         return Response(response="Error: Conflict in database", status=409)
-    except KeyError:
+    except KeyError as e:
         return Response(response="Error: Data in invalid format", status=400)
 
+
 @house.route("Homeowner/<int:id>/House")
-def get_house(id):
+def get_houses(id):
     houses = House.query.filter(House.homeownerId == id).all()
     if houses:
         return jsonify([house.toJson() for house in houses])
-    return Response(response="Error: No house with homeowner id: " + id, status=404)
+    return Response(response="Error: No house with homeowner id: " + str(id), status=404)
+
+
+@house.route("House/<int:houseId>")
+def get_house(houseId):
+    house = House.query.get(houseId)
+    if house:
+        return jsonify(house.toJson())
+    return Response(response="Error: No house with homeowner id: " + str(id), status=404)
