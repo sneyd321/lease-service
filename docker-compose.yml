@@ -2,34 +2,14 @@ version: '3.5'
 
 services: 
     house-service:
-        image: sneyd321/roomr-db-service
-        depends_on: 
-            - mysql
+        image: sneyd321/homeowner-service
+       
         ports: 
             - 8082:8082
-        networks: 
-            - roomr-network
-        volumes:
+        volumes:    
             - ./orm-service:/usr/src/app 
 
         restart: on-failure
 
-    mysql:
-        image: mysql
-        
-        command: --init-file /data/application/init.sql
-        volumes: 
-            - ./mysql-volume/init/init.sql:/data/application/init.sql
-            - ./mysql-volume/data:/var/lib/mysql
 
-        environment:
-            MYSQL_ROOT_PASSWORD: root
-        cap_add:
-            - SYS_NICE
-
-        networks: 
-            - roomr-network
             
-
-networks: 
-    roomr-network:

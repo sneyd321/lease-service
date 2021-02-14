@@ -17,12 +17,14 @@ class House(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     homeownerId = db.Column(db.Integer(), nullable=False)
     rentalUnitLocation = db.relationship("RentalUnitLocation", backref="House", lazy=True, uselist=False)
+    homeownerLocation = db.relationship("HomeownerLocation", backref="House", lazy=True, uselist=False)
     rentDetails = db.relationship("RentDetails", backref="House", lazy=True, uselist=False)
     utilities = db.relationship("Utility", secondary=utilities, backref=db.backref("House", lazy="dynamic"))
     amenities = db.relationship("Amenity", secondary=amenities, backref=db.backref("House", lazy="dynamic"))
 
     def __init__(self, houseData):
         self.homeownerId = houseData["homeownerId"]
+        self.homeownerLocation = HomeownerLocation(houseData["homeownerLocation"])
         self.rentalUnitLocation = RentalUnitLocation(houseData["rentalUnitLocation"])    
         self.rentDetails = RentDetails(houseData["rentDetails"])
         self.utilities = [Utility(utilityData) for utilityData in houseData["utilities"]]
@@ -32,6 +34,7 @@ class House(db.Model):
         return {
             "houseId": self.id,
             "homeownerId": self.homeownerId,
+            "homeownerLocation": self.homeownerLocation.toJson(),
             "rentalUnitLocation": self.rentalUnitLocation.toJson(),
             "rentDetails": self.rentDetails.toJson(),
             "utilities": [utility.toJson() for utility in self.utilities],
@@ -51,14 +54,13 @@ class House(db.Model):
 
     def update(self):
         try:
+            self.homeownerLocation.update()
             self.rentalUnitLocation.update()
             self.rentDetails.update()
             for utility in self.utilities:
                 utility.update()
             for amenity in self.amenities:
                 amenity.update()
-            for tenant in self.tenants:
-                tenant.update()
             db.session.commit()
             return True
         except OperationalError:
@@ -262,3 +264,65 @@ class Utility(db.Model):
         return "<Utility " + self.name + " >"
 
 
+class HomeownerLocation(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    streetNumber = db.Column(db.Integer())
+    streetName = db.Column(db.String(200))
+    city = db.Column(db.String(100))
+    province = db.Column(db.String(100))
+    postalCode = db.Column(db.String(10))
+    unitNumber = db.Column(db.String(10))
+    poBox = db.Column(db.String(10))
+    houseId = db.Column(db.Integer(), db.ForeignKey('house.id'), nullable=False)
+
+    def __init__(self, homeownerLocationData):
+        self.streetNumber = homeownerLocationData["streetNumber"]
+        self.streetName = homeownerLocationData["streetName"]
+        self.city = homeownerLocationData["city"]
+        self.province = homeownerLocationData["province"]
+        self.postalCode = homeownerLocationData["postalCode"]
+        self.unitNumber = homeownerLocationData["unitNumber"]
+        self.poBox = homeownerLocationData["poBox"]
+
+    def insert(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return True
+        except IntegrityError as e:
+            print(e)
+            db.session.rollback()
+            return False
+
+    def update(self):
+        HomeownerLocation.query.filter(HomeownerLocation.homeownerId == self.homeownerId).update(self.toDict(), synchronize_session=False)
+        db.session.commit()
+
+    def delete(self):
+        HomeownerLocation.query.filter(HomeownerLocation.homeownerId == self.homeownerId).delete()
+        db.session.commit()
+
+    def toDict(self):
+        return {
+            HomeownerLocation.streetNumber: self.streetNumber,
+            HomeownerLocation.streetName: self.streetName,
+            HomeownerLocation.city: self.city,
+            HomeownerLocation.province: self.province,
+            HomeownerLocation.postalCode: self.postalCode,
+            HomeownerLocation.unitNumber: self.unitNumber,
+            HomeownerLocation.poBox: self.poBox
+        }
+
+    def toJson(self):
+        return {
+            "streetNumber": self.streetNumber,
+            "streetName": self.streetName,
+            "city": self.city,
+            "province": self.province,
+            "postalCode": self.postalCode,
+            "unitNumber": self.unitNumber,
+            "poBox": self.poBox
+        }
+
+    def __repr__(self):
+        return "< Homeowner Location: " + str(self.streetNumber) + " " + self.streetName + " >"
