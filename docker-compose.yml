@@ -2,14 +2,15 @@ version: '3.5'
 
 services: 
     house-service:
-        image: sneyd321/homeowner-service
+        image: sneyd321/house-service:test
        
         ports: 
             - 8082:8082
         volumes:    
-            - ./orm-service:/usr/src/app 
+            - ./house-service:/usr/src/app 
 
         restart: on-failure
 
+    
 
             

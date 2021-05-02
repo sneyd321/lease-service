@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>My Webpage</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />    
+
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif;}
+        * {box-sizing: border-box;}
+        
+        h2 {
+            color: #006BA6;
+        }
+
+        p {
+            padding-left: 10px;
+        }
+     
+        label {
+          width: 100%;
+          padding: 10px;
+          outline: none;
+        }
+        .mdc-text-field-helper-line {
+            margin-bottom: 5px;
+        }
+       
+        /* Set a style for the submit button */
+        button {
+          background-color: #006BA6;
+          color: white;
+          padding: 15px 20px;
+          border: none;
+          cursor: pointer;
+          width: 100%;
+          opacity: 0.9;
+        }
+
+        
+        button:hover {
+          opacity: 1;
+        }
+        </style>
+</head>
+<body>
+    <h2>Amenites Offered</h2>
+    <!--<form method="POST" action="http://34.107.132.144/homeowner-gateway/v1/">-->
+    <form method="POST" action="{{url}}">  
+
+
+        {% for item in fields %}
+
+            <p>{{ item.label.text }}</p>
+
+            <div class="mdc-form-field">
+                <div class="mdc-radio">
+                <input class="mdc-radio__native-control" type="radio" id="{{ item.choices[0][1] }}" name="{{ item.label.text }}" value="{{  item.choices[0][0] }}" checked  />
+                <div class="mdc-radio__background">
+                    <div class="mdc-radio__outer-circle"></div>
+                    <div class="mdc-radio__inner-circle"></div>
+                </div>
+                <div class="mdc-radio__ripple"></div>
+                </div>
+                <label for="{{ fields[0].choices[0] }}">{{ item.choices[0][1] }}</label>
+            </div>
+            <div class="mdc-form-field">
+                <div class="mdc-radio">
+                <input class="mdc-radio__native-control" type="radio" id="{{ item.choices[1][1] }}" name="{{ item.label.text }}" value="{{  item.choices[1][0] }}"  />
+                <div class="mdc-radio__background">
+                    <div class="mdc-radio__outer-circle"></div>
+                    <div class="mdc-radio__inner-circle"></div>
+                </div>
+                <div class="mdc-radio__ripple"></div>
+                </div>
+                <label for="{{ fields[0].choices[0] }}">{{ item.choices[1][1] }}</label>
+            </div>
+    
+        {% endfor %}
+        
+        <br>
+        <br>
+        <button type="submit" >Next</button>
+        <p style="color: red;">{{conflict}}</p>
+
+
+    </form>
+    <script>
+        const textFields = [].map.call(document.querySelectorAll('.mdc-text-field'), function(el) {
+            return mdc.textField.MDCTextField.attachTo(el);
+        });
+
+    </script>
+
+</body>
+</html>
+

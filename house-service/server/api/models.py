@@ -1,7 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from server import db
 from sqlalchemy.exc import IntegrityError, OperationalError
-
+from itsdangerous import (TimedJSONWebSignatureSerializer
+                          as Serializer, BadSignature, SignatureExpired)
 
 
 amenities = db.Table("house_amenities",
@@ -16,6 +17,7 @@ db.Column("utilityId", db.Integer(), db.ForeignKey("utility.id")))
 class House(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     homeownerId = db.Column(db.Integer(), nullable=False)
+    lease = db.Column(db.String(100), nullable=True)
     rentalUnitLocation = db.relationship("RentalUnitLocation", backref="House", lazy=True, uselist=False)
     homeownerLocation = db.relationship("HomeownerLocation", backref="House", lazy=True, uselist=False)
     rentDetails = db.relationship("RentDetails", backref="House", lazy=True, uselist=False)
@@ -24,6 +26,7 @@ class House(db.Model):
 
     def __init__(self, houseData):
         self.homeownerId = houseData["homeownerId"]
+        self.lease = None
         self.homeownerLocation = HomeownerLocation(houseData["homeownerLocation"])
         self.rentalUnitLocation = RentalUnitLocation(houseData["rentalUnitLocation"])    
         self.rentDetails = RentDetails(houseData["rentDetails"])
@@ -33,6 +36,7 @@ class House(db.Model):
     def toJson(self):
         return {
             "houseId": self.id,
+            "lease": self.lease,
             "homeownerId": self.homeownerId,
             "homeownerLocation": self.homeownerLocation.toJson(),
             "rentalUnitLocation": self.rentalUnitLocation.toJson(),
@@ -53,19 +57,44 @@ class House(db.Model):
     
 
     def update(self):
+        rows = House.query.filter(House.id == self.id).update(self.toDict(), synchronize_session=False)
+        if rows == 1:
+            try:
+                db.session.commit()
+                db.session.close()
+                return True
+            except OperationalError:
+                db.session.rollback()
+                db.session.close()
+                return False
+        return False
+
+    def toDict(self):
+        return {
+            House.id : self.id,
+            House.lease : self.lease,
+            House.homeownerId : self.homeownerId,
+        }
+
+    def getId(self):
+        return {
+            "houseId": self.id
+        }
+
+    def generate_auth_token(self, expiration = 600):
+        s = Serializer(app.config['SECRET_KEY'], expires_in = expiration)
+        return s.dumps({ 'id': self.id })
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
         try:
-            self.homeownerLocation.update()
-            self.rentalUnitLocation.update()
-            self.rentDetails.update()
-            for utility in self.utilities:
-                utility.update()
-            for amenity in self.amenities:
-                amenity.update()
-            db.session.commit()
-            return True
-        except OperationalError:
-            db.session.rollback()
-            return False
+            data = s.loads(token)
+            return House.query.get(data['id'])
+        except SignatureExpired:
+            return None 
+        except BadSignature:
+            return None # invalid token
     
     def __repr__(self):
         return "< House: House >"
