@@ -53,7 +53,7 @@
 
         {% for item in fields %}
 
-            <p>{{ item.label.text }}</p>
+            <p>{{ names[loop.index - 1] }}</p>
 
             <div class="mdc-form-field">
                 <div class="mdc-radio">

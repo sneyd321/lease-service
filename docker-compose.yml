@@ -1,16 +1,16 @@
 version: '3.5'
 
 services: 
-    house-service:
-        image: sneyd321/house-service:test
+    lease-service:
+        image: sneyd321/lease-service
        
         ports: 
-            - 8082:8082
+            - 8090:8090
         volumes:    
-            - ./house-service:/usr/src/app 
+            - ./lease-service:/usr/src/app 
 
         restart: on-failure
 
-    
 
-            
+    
+        
