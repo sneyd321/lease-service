@@ -14,9 +14,9 @@ class Lease:
 
     def toJson(self):
         return {
-            "rentDetails": self._rentDetails.toJson(),
-            "amenities": self._amenities.toJson(),
-            "utilities": self._utilities.toJson()
+            "rentDetails": self._rentDetails.toJson() if self._rentDetails else {},
+            "amenities": self._amenities.toJson() if self._amenities else {},
+            "utilities": self._utilities.toJson() if self._utilities else {}
         }
 
 
@@ -105,7 +105,7 @@ class Amenity(db.Model):
         self.airConditioning = amenityData.get("airConditioning", "") == "True"
         self.gas = amenityData.get("gas", "") == "True"
         self.guestParking = amenityData.get("guestParking", "") == "True"
-        self.storage = amenityData.get("storage", "") == True
+        self.storage = amenityData.get("storage", "") == "True"
         self.onSiteLaundry = amenityData.get("onSiteLaundry", "") == "True"
 
         self.houseId = amenityData.get("houseId", "")

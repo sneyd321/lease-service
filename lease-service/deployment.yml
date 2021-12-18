@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: house-service
+  name: lease-service
 spec:
   selector:
     matchLabels:
-      run: house-service
+      run: lease-service
   replicas: 1
   template:
     metadata:
       labels:
-        run: house-service
+        run: lease-service
     spec:
       containers:
-      - name: house-service
-        image: sneyd321/house-service
+      - name: lease-service
+        image: sneyd321/lease-service
         ports:
-        - containerPort: 8082
+        - containerPort: 8090
         
       imagePullSecrets:
         - name: key
